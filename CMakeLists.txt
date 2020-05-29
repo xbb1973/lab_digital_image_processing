@@ -11,3 +11,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(graphics_opencv graphics.cpp)
 
 target_link_libraries(graphics_opencv ${OpenCV_LIBS})
+
+MESSAGE("OpenCV version : ${OpenCV_VERSION}")
