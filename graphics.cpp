@@ -443,7 +443,9 @@ void normalnization_equalization_hist_color_image(string image_path, int flag) {
     split(hsv, channels);
     // 只需要获取图像的亮度Intensity，将其均衡化
     // equalizeHist(channels[0], channels[0]);
+    // 手写equalizeHist，效果与源码相近！！
     myEqualizeHist(channels[0], channels[0]);
+
     // 合并结果通道，将结果转化为BGR
     merge(channels, hsv);
     if (flag == 1) {
@@ -455,172 +457,45 @@ void normalnization_equalization_hist_color_image(string image_path, int flag) {
     waitKey(0);
 }
 
-Mat myEqualizeHist2(Mat src, Mat dst) {
-    // if (src.empty())
-    // {
-    //     return dst;
-    // }
-    CV_Assert(src.type() == CV_8UC1);
-    cv::Mat _src(src.size(), src.type());
-    src.copyTo(_src);
-    int hist[256] = {0,};
-    int lut[256];
-    cv::Range heightRange(0, _src.rows);
-
-    const size_t sstep = _src.step;
-    int width = _src.cols;
-    int height = heightRange.end - heightRange.start;
-    // if (_src.isContinuous())
-    // {
-    //     width *= height;
-    //     height = 1;
-    // }
-    for (const uchar *ptr = _src.ptr<uchar>(heightRange.start); height--; ptr += sstep) {
-        int x = 0;
-        for (; x <= width - 4; x += 4) {
-            int t0 = ptr[x], t1 = ptr[x + 1];
-            hist[t0]++;
-            hist[t1]++;
-            t0 = ptr[x + 2], t1 = ptr[x + 3];
-            hist[t0]++;
-            hist[t1]++;
-        }
-        for (; x < width; ++x) {
-            hist[ptr[x]]++;
-        }
-    }
-
-    int i = 0;
-    while (!hist[i]) ++i;
-
-    int total = (int) _src.total();
-    if (hist[i] == total) {
-        dst.setTo(i);
-        return dst;
-    }
-    float scale = (256 - 1.f) / (total - hist[i]);
-    int sum = 0;
-    for (lut[i++] = 0; i < 256; ++i) {
-        sum += hist[i];
-        lut[i] = cv::saturate_cast<uchar>(sum * scale);
-    }
-
-    cv::Range heightRange1(0, _src.rows);
-    const size_t dstep = dst.step;
-    int height1 = heightRange1.end - heightRange1.start;
-    int width1 = _src.cols;
-    // if (_src.isContinuous() && dst.isContinuous())
-    // {
-    //     width1 *= height1;
-    //     height1 = 1;
-    // }
-    const uchar *sptr1 = _src.ptr<uchar>(heightRange1.start);
-    uchar *dptr1 = dst.ptr<uchar>(heightRange1.start);
-    for (; height1--; sptr1 += sstep, dptr1 += dstep) {
-        int x = 0;
-        for (; x <= width1 - 4; x += 4) {
-            int v0 = sptr1[x];
-            int v1 = sptr1[x + 1];
-            int x0 = lut[v0];
-            int x1 = lut[v1];
-            dptr1[x] = (uchar) x0;
-            dptr1[x + 1] = (uchar) x1;
-
-            v0 = sptr1[x + 2];
-            v1 = sptr1[x + 3];
-            x0 = lut[v0];
-            x1 = lut[v1];
-            dptr1[x + 2] = (uchar) x0;
-            dptr1[x + 3] = (uchar) x1;
-        }
-        for (; x < width1; ++x) {
-            dptr1[x] = (uchar) lut[sptr1[x]];
-        }
-    }
-    return dst;
-}
-
-
 Mat myEqualizeHist(Mat src, Mat dst) {
-    // if (src.empty())
-    // {
-    //     return dst;
-    // }
-    CV_Assert(src.type() == CV_8UC1);
-    cv::Mat _src(src.size(), src.type());
-    src.copyTo(_src);
+    // 灰度分布直方图
     int hist[256] = {0,};
+    // 色彩转换表，由src转化为dst的色彩对照表
     int lut[256];
-    cv::Range heightRange(0, _src.rows);
-
-    const size_t sstep = _src.step;
-    int width = _src.cols;
-    int height = heightRange.end - heightRange.start;
-    // if (_src.isContinuous())
-    // {
-    //     width *= height;
-    //     height = 1;
+    // 获取图像Hist信息
+    for (int j = 0; j < src.rows; ++j) {
+        for (int i = 0; i < src.cols; ++i) {
+            int temp_index = src.ptr<uchar>(j)[i];
+            // printf("temp_index = %d \n", temp_index);
+            hist[temp_index]++;
+        }
+    }
+    // for (int k = 0; k < 256; ++k) {
+    //     printf("hist[i] = %d \n", hist[k]);
     // }
-    for (const uchar *ptr = _src.ptr<uchar>(heightRange.start); height--; ptr += sstep) {
-        int x = 0;
-        for (; x <= width - 4; x += 4) {
-            int t0 = ptr[x], t1 = ptr[x + 1];
-            hist[t0]++;
-            hist[t1]++;
-            t0 = ptr[x + 2], t1 = ptr[x + 3];
-            hist[t0]++;
-            hist[t1]++;
+    // total等于像素点总数
+    float total = (int) src.total();
+    // 灰度分布密度
+    // hist[i] / total
+    float temp[256];
+    for (int k = 0; k < 256; ++k) {
+        // printf("hist[i] = %d \n", hist[k]);
+        // temp[k]为累计分布函数，处理后像素值会均匀分布。
+        // 累积分布函数是单调增函数（控制大小关系），并且值域是0到1（控制越界问题），
+        // 所以直方图均衡化中使用的是累积分布函数。
+        if (k==0) {
+            temp[k] = hist[k] / total;
+
+        } else {
+            temp[k] = temp[k-1] + hist[k] / total;
         }
-        for (; x < width; ++x) {
-            hist[ptr[x]]++;
-        }
+        lut[k] = (int) ( 255.0f * temp[k]);
     }
 
-    int i = 0;
-    while (!hist[i]) ++i;
-
-    int total = (int) _src.total();
-    if (hist[i] == total) {
-        dst.setTo(i);
-        return dst;
-    }
-    float scale = (256 - 1.f) / (total - hist[i]);
-    int sum = 0;
-    for (lut[i++] = 0; i < 256; ++i) {
-        sum += hist[i];
-        lut[i] = cv::saturate_cast<uchar>(sum * scale);
-    }
-
-    cv::Range heightRange1(0, _src.rows);
-    const size_t dstep = dst.step;
-    int height1 = heightRange1.end - heightRange1.start;
-    int width1 = _src.cols;
-    // if (_src.isContinuous() && dst.isContinuous())
-    // {
-    //     width1 *= height1;
-    //     height1 = 1;
-    // }
-    const uchar *sptr1 = _src.ptr<uchar>(heightRange1.start);
-    uchar *dptr1 = dst.ptr<uchar>(heightRange1.start);
-    for (; height1--; sptr1 += sstep, dptr1 += dstep) {
-        int x = 0;
-        for (; x <= width1 - 4; x += 4) {
-            int v0 = sptr1[x];
-            int v1 = sptr1[x + 1];
-            int x0 = lut[v0];
-            int x1 = lut[v1];
-            dptr1[x] = (uchar) x0;
-            dptr1[x + 1] = (uchar) x1;
-
-            v0 = sptr1[x + 2];
-            v1 = sptr1[x + 3];
-            x0 = lut[v0];
-            x1 = lut[v1];
-            dptr1[x + 2] = (uchar) x0;
-            dptr1[x + 3] = (uchar) x1;
-        }
-        for (; x < width1; ++x) {
-            dptr1[x] = (uchar) lut[sptr1[x]];
+    for (int j = 0; j < dst.rows; ++j) {
+        for (int i = 0; i < dst.cols; ++i) {
+            int temp_index = src.ptr<uchar>(j)[i];
+            dst.at<uchar>(j, i) = (uchar) lut[temp_index];
         }
     }
     return dst;
