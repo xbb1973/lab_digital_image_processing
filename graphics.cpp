@@ -54,6 +54,10 @@ void normalnization_equalization_hist_gray_image(string image_path);
 void normalnization_equalization_hist_color_image(string image_path, int flag);
 
 
+// lab3负责调用实验2的内容逻辑
+void lab3();
+
+
 int main() {
     // lab1();
 
@@ -69,7 +73,9 @@ int main() {
     // waitKey(0);
 
 
-    lab2();
+    // lab2();
+
+    lab3();
 
     return 0;
 }
@@ -499,4 +505,69 @@ Mat myEqualizeHist(Mat src, Mat dst) {
         }
     }
     return dst;
+}
+
+
+int MeanFilter_Gray(int a, int b)
+{
+    Mat image, meanRes;
+    image = imread("image/lena.png", 0); // Read the file
+    namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
+    imshow("原图", image);                // Show our image inside it.
+
+    blur(image, meanRes, Size(a, b));			//均值滤波
+
+    namedWindow("均值滤波", WINDOW_AUTOSIZE); // Create a window for display.
+    imshow("均值滤波", meanRes);                // Show our image inside it.
+    waitKey(0); // Wait for a keystroke in the window
+    destroyAllWindows();
+    return 0;
+}
+
+/**
+  * 1、利用均值模板平滑灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 3*3、5*5 和 9*9 尺寸的均值模板平滑灰度图像
+  * 2、利用高斯模板平滑灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 3*3、5*5 和 9*9 尺寸的高斯模板平滑灰度图像
+  * 3、利用 Laplacian、Robert、Sobel 模板锐化灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 Laplacian、Robert、 Sobel 模板锐化灰度图像
+  * 4、利用高提升滤波算法增强灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，设计高提升滤波算法增 强图像
+  * 5、利用均值模板平滑彩色图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，利 用 3*3、5*5 和 9*9 尺寸的均值模板平滑彩色图像
+  * 6、利用高斯模板平滑彩色图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，分 别利用 3*3、5*5 和 9*9 尺寸的高斯模板平滑彩色图像
+  * 7、利用 Laplacian、Robert、Sobel 模板锐化灰度图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，分 别利用 Laplacian、Robert、Sobel 模板锐化彩色图像
+  *
+  */
+void lab3() {
+    string image = image_path + "lena.png";
+
+     // 1、利用均值模板平滑灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 3*3、5*5 和 9*9 尺寸的均值模板平滑灰度图像
+     // MeanFilter_Gray(3, 3);
+     // MeanFilter_Gray(5, 5);
+     // MeanFilter_Gray(9, 9);
+
+     // 2、利用高斯模板平滑灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 3*3、5*5 和 9*9 尺寸的高斯模板平滑灰度图像
+     // GaussianFilter_Gray(3, 3);
+     // GaussianFilter_Gray(5, 5);
+     // GaussianFilter_Gray(9, 9);
+
+     // 3、利用 Laplacian、Robert、Sobel 模板锐化灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，分别利用 Laplacian、Robert、 Sobel 模板锐化灰度图像
+     // Laplacian_Gray();
+     // Robert_G();
+     // Sobel();
+
+     // 4、利用高提升滤波算法增强灰度图像。 具体内容：利用 OpenCV 对图像像素进行操作，设计高提升滤波算法增 强图像
+     // test4();
+
+     // 5、利用均值模板平滑彩色图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，利 用 3*3、5*5 和 9*9 尺寸的均值模板平滑彩色图像
+     // MeanFilter_Color(3, 3);
+     // MeanFilter_Color(5, 5);
+     // MeanFilter_Color(9, 9);
+
+     // 6、利用高斯模板平滑彩色图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，分 别利用 3*3、5*5 和 9*9 尺寸的高斯模板平滑彩色图像
+     // GaussianFilter_Color(3, 3);
+     // GaussianFilter_Color(5, 5);
+     // GaussianFilter_Color(9, 9);
+
+     // 7、利用 Laplacian、Robert、Sobel 模板锐化灰度图像。 具体内容：利用 OpenCV 分别对图像像素的 RGB 三个通道进行操作，分别利用 Laplacian、Robert、Sobel 模板锐化彩色图像
+     // Lap2();
+     // Laplacian_Color();
+     // Robert_RGB();
+     // Sobel_Color();
 }
