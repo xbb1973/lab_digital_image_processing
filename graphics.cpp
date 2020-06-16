@@ -129,6 +129,7 @@ Mat EnhanceLaplaceFilter(string image_path, int m_width, int m_height, int flag)
  */
 void lab4();
 
+
 int main() {
     // lab1();
 
@@ -585,60 +586,60 @@ Mat myEqualizeHist(Mat src, Mat dst) {
  */
 int MeanFilter_Gray(int a, int b) {
     Mat image, meanRes;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     blur(image, meanRes, Size(a, b));            //均值滤波
 
     namedWindow("均值滤波", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("均值滤波", meanRes);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("均值滤波", meanRes);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
 
 int MeanFilter_Color(int a, int b) {
     Mat image, meanRes;
-    image = imread(image_path + "lena.png", 1); // Read the file
+    image = imread(image_path + "lena.png", 1);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     blur(image, meanRes, Size(a, b));            //均值滤波
 
     namedWindow("均值滤波", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("均值滤波", meanRes);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("均值滤波", meanRes);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
 
 int GaussianFilter_Gray(int a, int b) {
     Mat image, res;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     GaussianBlur(image, res, Size(a, b), 1);
 
     namedWindow("高斯滤波", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("高斯滤波", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("高斯滤波", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
 
 int GaussianFilter_Color(int a, int b) {
     Mat image, res;
-    image = imread(image_path + "lena.png", 1); // Read the file
+    image = imread(image_path + "lena.png", 1);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     GaussianBlur(image, res, Size(a, b), 1);
 
     namedWindow("高斯滤波", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("高斯滤波", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("高斯滤波", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
@@ -648,26 +649,26 @@ int Sobel() {
     Mat grad_x, grad_y;
     Mat abs_grad_x, abs_grad_y;
     Mat image, res;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     Sobel(image, grad_x, image.depth(), 1, 0, 3, 1, 1, BORDER_DEFAULT);
     convertScaleAbs(grad_x, abs_grad_x);
     imshow("【效果图】 X方向Sobel", abs_grad_x);
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
 
     Sobel(image, grad_y, image.depth(), 0, 1, 3, 1, 1, BORDER_DEFAULT);
     convertScaleAbs(grad_y, abs_grad_y);
     imshow("【效果图】Y方向Sobel", abs_grad_y);
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
 
     //【5】合并梯度(近似)
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, res);
     imshow("【效果图】整体方向Sobel", res);
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
 
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
@@ -676,26 +677,26 @@ int Sobel_Color() {
     Mat grad_x, grad_y;
     Mat abs_grad_x, abs_grad_y;
     Mat image, res;
-    image = imread(image_path + "lena.png", 1); // Read the file
+    image = imread(image_path + "lena.png", 1);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("原图", image);
+    waitKey(0);
 
     Sobel(image, grad_x, image.depth(), 1, 0, 3, 1, 1, BORDER_DEFAULT);
     convertScaleAbs(grad_x, abs_grad_x);
     imshow("【效果图】 X方向Sobel", abs_grad_x);
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
 
     Sobel(image, grad_y, image.depth(), 0, 1, 3, 1, 1, BORDER_DEFAULT);
     convertScaleAbs(grad_y, abs_grad_y);
     imshow("【效果图】Y方向Sobel", abs_grad_y);
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
 
     //【5】合并梯度(近似)
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, res);
     imshow("【效果图】整体方向Sobel", res);
 
-    waitKey(0); // Wait for a keystroke in the window
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
@@ -703,17 +704,17 @@ int Sobel_Color() {
 //拉普拉斯模板
 int Laplacian_Color() {
     Mat image, res;
-    image = imread(image_path + "lena.png", IMREAD_COLOR); // Read the file
+    image = imread(image_path + "lena.png", IMREAD_COLOR);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("原图", image);
+    waitKey(0);
 
     Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 4, -1, 0, -1, 0);
     filter2D(image, res, image.depth(), kernel);
 
     namedWindow("拉普拉斯模板", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("拉普拉斯模板", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("拉普拉斯模板", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
@@ -721,17 +722,17 @@ int Laplacian_Color() {
 
 int Laplacian_Gray() {
     Mat image, res;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("原图", image);
+    waitKey(0);
 
     Mat kernel = (Mat_<float>(3, 3) << 0, -1, 0, -1, 4, -1, 0, -1, 0);
     filter2D(image, res, image.depth(), kernel);
 
     namedWindow("拉普拉斯模板", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("拉普拉斯模板", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("拉普拉斯模板", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
@@ -739,9 +740,9 @@ int Laplacian_Gray() {
 
 int Lap2() {
     Mat image, res;
-    image = imread(image_path + "lena.png", IMREAD_COLOR); // Read the file
+    image = imread(image_path + "lena.png", IMREAD_COLOR);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
 
     res.create(image.size(), image.type());//为输出图像分配内容
 
@@ -778,17 +779,17 @@ int Lap2() {
     image.col(0).copyTo(result.col(0));
     image.col(image.cols-1).copyTo(result.col(result.cols-1));*/
     namedWindow("拉普拉斯模板-手写", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("拉普拉斯模板-手写", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("拉普拉斯模板-手写", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 }
 
 int Robert_G() {
     Mat image, res;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     namedWindow("原图", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("原图", image);                // Show our image inside it.
+    imshow("原图", image);
     res = image.clone();
 
     for (int i = 0; i < image.rows - 1; i++) {
@@ -808,8 +809,8 @@ int Robert_G() {
     }
 
     namedWindow("Robert_G滤波", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("Robert_G滤波", res);                // Show our image inside it.
-    waitKey(0); // Wait for a keystroke in the window
+    imshow("Robert_G滤波", res);
+    waitKey(0);
     destroyAllWindows();
     return 0;
 
@@ -1612,6 +1613,31 @@ Mat MeanFilter(string image_path, int m_width, int m_height, int flag) {
     return dst;
 }
 
+// 利用均值模板平滑灰度图像/彩色图像
+Mat MeanFilter(Mat src, int m_width, int m_height, int flag) {
+    Mat dst;
+    src.copyTo(dst);
+    imshow("原图", src);
+    waitKey(0);
+
+    double *mask = new double[m_width * m_height];
+    MeanMask(mask, m_width, m_height);
+    if (flag == 1) {
+        vector<Mat> channels;
+        split(src, channels);
+        for (int i = 0; i < 3; ++i) {
+            CovImage(channels[i], channels[i], mask, m_width, m_height);
+        }
+        merge(channels, dst);
+    }
+    if (flag == 0) {
+        CovImage(src, dst, mask, m_width, m_height);
+    }
+    imshow("滤波后", dst);
+    waitKey(0);
+    return dst;
+}
+
 // 利用高斯模板平滑灰度图像/彩色图像
 Mat GaussianFilter(string image_path, int m_width, int m_height, double sigma, int flag) {
     Mat src = imread(image_path, flag);
@@ -2098,226 +2124,244 @@ Mat SelfAdaptMeanFilter(Mat src) {
     }
     return dst;
 }
+//
+// IplImage *MatToIplImage(Mat image) {
+//     Mat t = image.clone();
+//     IplImage *res = &IplImage(t);
+//     return res;
+// }
+//
+// Mat IplImageToMat(IplImage *image) {
+//     Mat res = cvarrToMat(image, true);
+//     return res;
+// }
 
-IplImage *MatToIplImage(Mat image) {
-    Mat t = image.clone();
-    IplImage *res = &IplImage(t);
-    return res;
-}
-
-Mat IplImageToMat(IplImage *image) {
-    Mat res = cvarrToMat(image, true);
-    return res;
-}
-
-void test1() {
+// 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。
+// （注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
+void MeanFilterTest() {
     Mat image, noise, res;
 
-    /*----------高斯噪声+算术均值-----------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
-
-    noise = addGaussianNoise(image);            //添加高斯噪声
-    imshow("添加高斯噪声", noise);
-
-    res = noise.clone();
-    meanFilter(res, 5);                    //算术均值滤波器
-    imshow("算术均值滤波器", res);
-    /*------展示图像-------*/
+    // 1、高斯噪声、算数均值
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
     waitKey(0);
-    destroyAllWindows();
+    // 添加高斯噪声
+    noise = addGaussianNoise(image);
+    imshow("添加高斯噪声", noise);
+    waitKey(0);
+    // 算数均值滤波器1、2、效果一致
+    // 算数均值滤波器1
+    MeanFilter(noise, 5, 5, 0);
+    // 算数均值滤波器2
+    meanFilter(noise, 5);
+    imshow("算术均值滤波器", noise);
+    waitKey(0);
 
-    /*----------胡椒噪声+几何均值-----------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
 
+    // 2、胡椒噪声、几何均值
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
     noise = image.clone();
     addPepper(noise, 1000);
     imshow("添加1000个胡椒噪声", noise);
-
-    res = noise.clone();
-    meanFilter(res, 5);
-    imshow("几何均值滤波器", res);
-
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
+    res = noise.clone();
+    Mat dst = GeometryMeanFilter(res);
+    imshow("几何均值滤波器", dst);
+    waitKey(0);
 
-    /*--------------盐噪声+谐波均值滤波器------------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
-
+    // 3、盐噪声、谐波均值滤波器
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
     noise = image.clone();
     addSalt(noise, 1000);
     imshow("添加1000个盐噪声", noise);
-
+    waitKey(0);
     res = HarmonicMeanFilter(noise);
     imshow("5*5谐波均值滤波器", res);
-
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
 
 
-    /*-----------椒盐噪声+逆谐波均值滤波器-----------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
-
+    // 4、椒盐噪声、逆谐波均值滤波器
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
     noise = image.clone();
     addSalt(noise, 1000);
-    Sleep(2000);                    //防止随机数种子一样
     addPepper(noise, 1000);
     imshow("添加1000个盐噪声+1000个胡椒噪声", noise);
-
-    res = InverseHarmonicMeanFilter(noise, 1);                //第二个参数是Q，Q=0退化成算术均值
-    imshow("5*5逆谐波均值滤波器", res);
-
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
-    return;
+    //第二个参数是Q，Q=0退化成算术均值
+    res = InverseHarmonicMeanFilter(noise, 1);
+    imshow("5*5逆谐波均值滤波器", res);
+    waitKey(0);
 }
 
-void test2() {
+// 2、中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用 5*5 和 9*9 尺寸的模板对图像进行中值滤波。
+// （注：请分别为图像添加胡椒噪声、盐噪声和 椒盐噪声，并观察滤波效果）
+void MedianFilterTest() {
     Mat image, noise, res1, res2;
 
     /*---------胡椒------------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
 
     noise = image.clone();
     addPepper(noise, 1000);
     imshow("添加1000个胡椒噪声", noise);
+    waitKey(0);
 
     res1 = noise.clone();
     medeanFilter(res1, 5);
     imshow("5*5中均值滤波器", res1);
+    waitKey(0);
 
-    res2 = noise.clone();
 
     res2 = noise.clone();
     medeanFilter(res2, 9);
     imshow("9*9中均值滤波器", res2);
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
 
     /*-----------盐噪声---------------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
 
     noise = image.clone();
     addSalt(noise, 1000);
     imshow("添加1000个盐噪声", noise);
+    waitKey(0);
 
     res1 = noise.clone();
     medeanFilter(res1, 5);
     imshow("5*5中均值滤波器", res1);
-
-    res2 = noise.clone();
+    waitKey(0);
 
     res2 = noise.clone();
     medeanFilter(res2, 9);
     imshow("9*9中均值滤波器", res2);
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
 
 
     /*-----------盐噪声+胡椒噪声---------------*/
-    image = imread(image_path + "lena.png", 0); // Read the file
-    imshow("原始图像", image);                // Show our image inside it.
+    image = imread(image_path + "lena.png", 0);
+    imshow("原始图像", image);
+    waitKey(0);
 
     noise = image.clone();
     addSalt(noise, 1000);
     addPepper(noise, 1000);
     imshow("添加1000个盐噪声+1000个胡椒噪声", noise);
+    waitKey(0);
 
     res1 = noise.clone();
     medeanFilter(res1, 5);
     imshow("5*5中均值滤波器", res1);
-
-    res2 = noise.clone();
+    waitKey(0);
 
     res2 = noise.clone();
     medeanFilter(res2, 9);
     imshow("9*9中均值滤波器", res2);
-    /*------展示图像-------*/
     waitKey(0);
-    destroyAllWindows();
-    return;
+
 }
 
-void test3() {
+void AdaptMeanFilterTest() {
     Mat image, res1, res2, noise;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
+    waitKey(0);
 
     noise = image.clone();
     addPepper(noise, 1000);
-    Sleep(2000);
+
     addSalt(noise, 1000);
     imshow("添加1000个胡椒噪声+1000个盐噪声", noise);
+    waitKey(0);
 
     res1 = SelfAdaptMeanFilter(image);
     imshow("自适应均值滤波", res1);
+    waitKey(0);
 
     res2 = noise.clone();
     meanFilter(res2, 7);
     imshow("7*7算术均值滤波", res2);
-
-    waitKey(0); // Wait for a keystroke in the window
-    destroyAllWindows();
+    waitKey(0);
 }
 
-void test4() {
+void AdaptMedianFilterTest() {
     Mat image, res1, res2, noise;
-    image = imread(image_path + "lena.png", 0); // Read the file
+    image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
+    waitKey(0);
 
     noise = image.clone();
     addPepper(noise, 1000);
-    Sleep(2000);
+
     addSalt(noise, 1000);
     imshow("添加1000个胡椒噪声+1000个盐噪声", noise);
+    waitKey(0);
 
     res1 = SelfAdaptMedianFilter(image);
     imshow("自适应中值滤波", res1);
+    waitKey(0);
 
     res2 = noise.clone();
     medeanFilter(res2, 7);
     imshow("7*7中值滤波", res2);
-
-    waitKey(0); // Wait for a keystroke in the window
-    destroyAllWindows();
+    waitKey(0);
 }
 
-void test5() {
+void MeanFilterColorTest() {
     Mat image, res1, res2, noise;
-    image = imread(image_path + "lena.png", 1); // Read the file
+    image = imread(image_path + "lena.png", 1);
     imshow("原始图像", image);
-
+    waitKey(0);
     noise = addGaussianNoise(image);
     imshow("添加高斯噪声", noise);
-
+    waitKey(0);
     res1 = noise.clone();
     meanFilter(res1, 5);                    //算术均值滤波器
     imshow("算术均值滤波器", res1);
-
+    waitKey(0);
     res2 = GeometryMeanFilter(noise);
     imshow("几何均值滤波器", res2);
-
-    waitKey(0); // Wait for a keystroke in the window
-    destroyAllWindows();
+    waitKey(0);
 
 }
 
 
+/**
+ * lab4
+ * 实验 4：图像去噪
+ * 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。（注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
+ * 2、中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用 5*5 和 9*9 尺寸的模板对图像进行中值滤波。（注：请分别为图像添加胡椒噪声、盐噪声和 椒盐噪声，并观察滤波效果）
+ * 3、自适应均值滤波。 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应局部降 低噪声滤波器去噪算法。模板大小 7*7（对比该算法的效果和均值滤波器的效果）
+ * 4、自适应中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应中值滤波算 法对椒盐图像进行去噪。模板大小 7*7（对比中值滤波器的效果）
+ * 5、彩色图像均值滤波 具体内容：利用 OpenCV 对彩色图像 RGB 三个通道的像素进行操作，利用算 术均值滤波器和几何均值滤波器进行彩色图像去噪。模板大小为 5*5。
+ */
 void lab4() {
-    test1();
-    test2();
-    test3();
-    test4();
-    test5();
-    destroyAllWindows();
+
+    // 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。
+    // （注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
+    MeanFilterTest();
+
+    // 2、中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用 5*5 和 9*9 尺寸的模板对图像进行中值滤波。
+    // （注：请分别为图像添加胡椒噪声、盐噪声和 椒盐噪声，并观察滤波效果）
+    MedianFilterTest();
+
+    // 3、自适应均值滤波。 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应局部降 低噪声滤波器去噪算法。模板大小 7*7
+    // （对比该算法的效果和均值滤波器的效果）
+    AdaptMeanFilterTest();
+
+    // 4、自适应中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应中值滤波算 法对椒盐图像进行去噪。模板大小 7*7
+    // （对比中值滤波器的效果）
+    AdaptMedianFilterTest();
+
+    // 5、彩色图像均值滤波 具体内容：利用 OpenCV 对彩色图像 RGB 三个通道的像素进行操作，利用算术均值滤波器和几何均值滤波器进行彩色图像去噪。模板大小为 5*5。
+    MeanFilterColorTest();
+
 }
