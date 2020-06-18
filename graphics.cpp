@@ -15,12 +15,7 @@
 using namespace std;
 using namespace cv;
 
-#define GRAY_LEVEL 8
-#define WIDTH 10
-#define HEIGHT 10
-#define M_WIDTH 5
-#define M_HEIGHT 5
-#define M_PI 3.14159265358979323846
+#define M_PI CV_PI
 
 // 本地测试图片路径
 const string image_path = "/Users/xbb1973/Documents/code/workdir/lab_digital_image/image/";
@@ -1617,8 +1612,8 @@ Mat MeanFilter(string image_path, int m_width, int m_height, int flag) {
 Mat MeanFilter(Mat src, int m_width, int m_height, int flag) {
     Mat dst;
     src.copyTo(dst);
-    imshow("原图", src);
-    waitKey(0);
+    // imshow("原图", src);
+    // waitKey(0);
 
     double *mask = new double[m_width * m_height];
     MeanMask(mask, m_width, m_height);
@@ -1633,8 +1628,8 @@ Mat MeanFilter(Mat src, int m_width, int m_height, int flag) {
     if (flag == 0) {
         CovImage(src, dst, mask, m_width, m_height);
     }
-    imshow("滤波后", dst);
-    waitKey(0);
+    // imshow("滤波后", dst);
+    // waitKey(0);
     return dst;
 }
 
@@ -1745,13 +1740,11 @@ void MedianFilter(double *src, double *dst, int width, int height, int m_width, 
     }
 }
 
-
-//本函数加入盐噪声
-void addSalt(Mat &image, int n) {
+// 脉冲/盐噪声生成
+void addSaltNoise(Mat &image, int num) {
     srand((unsigned) time(NULL));
     int i, j;
-    for (int k = 0; k < n; k++)//将图像中n个像素随机置零
-    {
+    while (num--) {
         i = rand() % image.cols;
         j = rand() % image.rows;
         //将图像颜色随机改变
@@ -1765,11 +1758,10 @@ void addSalt(Mat &image, int n) {
     }
 }
 
-void addPepper(Mat &image, int n)//本函数加入椒噪声
-{
+// 椒噪声生成
+void addPepperNoise(Mat &image, int num) {
     srand((unsigned) time(NULL));
-    for (int k = 0; k < n; k++)//将图像中n个像素随机置零
-    {
+    while (num--) {
         int i = rand() % image.cols;
         int j = rand() % image.rows;
         //将图像颜色随机改变
@@ -1784,6 +1776,34 @@ void addPepper(Mat &image, int n)//本函数加入椒噪声
     }
 }
 
+// 添加椒盐噪声
+// flag  =  0 椒
+//          1 盐
+//          2 椒盐
+void AddSultPapperNoise(const Mat &src, Mat &dst, int num, int flag) {
+    dst = src.clone();
+    uchar *pd = dst.data;
+    int row, col, cha, val;
+    srand((unsigned) time(NULL));
+    while (num--) {
+        row = rand() % dst.rows;
+        col = rand() % dst.cols;
+        cha = rand() % dst.channels();
+        if (flag == 0) {
+            val = 0;
+        } else if (flag == 1) {
+            val = 1;
+        } else {
+            val = rand() % 2;
+        }
+        if (val == 0) {
+            pd[(row * dst.cols + col) * dst.channels() + cha] = 0;
+        } else {
+            pd[(row * dst.cols + col) * dst.channels() + cha] = 255;
+        }
+    }
+}
+
 int GaussianNoise(double mu, double sigma) {
     //定义一个特别小的值
     const double epsilon = numeric_limits<double>::min();//返回目标数据类型能表示的最逼近1的正数和1的差的绝对值
@@ -1795,7 +1815,6 @@ int GaussianNoise(double mu, double sigma) {
         return z1 * sigma + mu;
     double u1, u2;
     //构造随机变量
-
     do {
         u1 = rand() * (1.0 / RAND_MAX);
         u2 = rand() * (1.0 / RAND_MAX);
@@ -1806,6 +1825,7 @@ int GaussianNoise(double mu, double sigma) {
     return z1 * sigma + mu;
 }
 
+// 高斯噪声生成
 Mat addGaussianNoise(Mat &srcImage) {
     Mat resultImage = srcImage.clone();    //深拷贝,克隆
     int channels = resultImage.channels();    //获取图像的通道
@@ -1831,26 +1851,26 @@ Mat addGaussianNoise(Mat &srcImage) {
     return resultImage;
 }
 
-//中值滤波器
-void medeanFilter(Mat &src, int win_size) {
+// 中值滤波器
+void medeanFilter(Mat &src, int kSize) {
     int rows = src.rows, cols = src.cols;
-    int start = win_size / 2;
+    int start = kSize / 2;
     for (int m = start; m < rows - start; m++) {
         for (int n = start; n < cols - start; n++) {
             vector<uchar> model;
             for (int i = -start + m; i <= start + m; i++) {
                 for (int j = -start + n; j <= start + n; j++) {
-                    //cout << int(src.at<uchar>(i, j)) << endl;
                     model.push_back(src.at<uchar>(i, j));
                 }
             }
-            sort(model.begin(), model.end());     //采用快速排序进行
-            src.at<uchar>(m, n) = model[win_size * win_size / 2];
+            // 排序后取第kSize * kSize / 2个数
+            sort(model.begin(), model.end());
+            src.at<uchar>(m, n) = model[kSize * kSize / 2];
         }
     }
 }
 
-//算术均值滤波器
+// 算数均值滤波器
 void meanFilter(Mat &src, int win_size) {
     int rows = src.rows, cols = src.cols;
     int start = win_size / 2;
@@ -1886,7 +1906,7 @@ void meanFilter(Mat &src, int win_size) {
     }
 }
 
-//几何均值滤波器
+// 几何均值滤波器
 Mat GeometryMeanFilter(Mat src) {
     Mat dst = src.clone();
     int row, col;
@@ -1898,9 +1918,8 @@ Mat GeometryMeanFilter(Mat src) {
     //计算每个像素的去噪后 color 值
     for (int i = 0; i < src.rows; i++) {
         for (int j = 0; j < src.cols; j++) {
-
-            if (src.channels() == 1)                //灰色图
-            {
+            //灰色图
+            if (src.channels() == 1) {
                 mul = 1.0;
                 mn = 0;
                 //统计邻域内的几何平均值，邻域大小 5*5
@@ -1924,7 +1943,6 @@ Mat GeometryMeanFilter(Mat src) {
                 double multi[3] = {1.0, 1.0, 1.0};
                 mn = 0;
                 Vec3b pixel;
-
                 for (int m = -2; m <= 2; m++) {
                     row = i + m;
                     for (int n = -2; n <= 2; n++) {
@@ -1950,9 +1968,9 @@ Mat GeometryMeanFilter(Mat src) {
     return dst;
 }
 
-//谐波均值滤波器——模板大小 5*5
+// 谐波均值滤波器5*5
+// 谐波公式：f(x,y)=mn/((∑_((s,t)∈s_xy)*1/(g(s,t))))
 Mat HarmonicMeanFilter(Mat src) {
-    //IplImage* dst = cvCreateImage(cvGetSize(src), src->depth, src->nChannels);
     Mat dst = src.clone();
     int row, col;
     int h = src.rows;
@@ -1972,7 +1990,7 @@ Mat HarmonicMeanFilter(Mat src) {
                     col = j + n;
                     if (row >= 0 && row < h && col >= 0 && col < w) {
                         int s = src.at<uchar>(row, col);
-                        sum = sum + (s == 0 ? 255 : 255.0 / s);                    //如果是0，设定为255
+                        sum = sum + (s == 0 ? 255 : 255.0 / s);
                         mn++;
                     }
                 }
@@ -1987,7 +2005,8 @@ Mat HarmonicMeanFilter(Mat src) {
     return dst;
 }
 
-//逆谐波均值大小滤波器——模板大小 5*5
+// 逆谐波均值大小滤波
+// 逆谐波公式：f(x,y)=(∑_((s,t)∈s_xy)g(s,t)^(Q+1) )/(∑_((s,t)∈s_xy)g(s,t)^Q )
 Mat InverseHarmonicMeanFilter(Mat src, double Q) {
     Mat dst = src.clone();
     int row, col;
@@ -2026,7 +2045,7 @@ Mat InverseHarmonicMeanFilter(Mat src, double Q) {
     return dst;
 }
 
-//自适应中值滤波
+// 自适应中值滤波
 Mat SelfAdaptMedianFilter(Mat src) {
     Mat dst = src.clone();
     int row, col;
@@ -2087,7 +2106,7 @@ Mat SelfAdaptMedianFilter(Mat src) {
     return dst;
 }
 
-//自适应均值滤波
+// 自适应均值滤波
 Mat SelfAdaptMeanFilter(Mat src) {
     Mat dst = src.clone();
     blur(src, dst, Size(7, 7));
@@ -2124,17 +2143,73 @@ Mat SelfAdaptMeanFilter(Mat src) {
     }
     return dst;
 }
-//
-// IplImage *MatToIplImage(Mat image) {
-//     Mat t = image.clone();
-//     IplImage *res = &IplImage(t);
-//     return res;
-// }
-//
-// Mat IplImageToMat(IplImage *image) {
-//     Mat res = cvarrToMat(image, true);
-//     return res;
-// }
+
+
+// 计算中值
+int GetMediValue(const int histogram[], int thresh) {
+    int sum = 0;
+    for (int i = 0; i < (1 << 16); i++) {
+        sum += histogram[i];
+        if (sum >= thresh)
+            return i;
+    }
+    return (1 << 16);
+}
+
+void MediFilter(const Mat &src, Mat &dst, int ksize) {
+    CV_Assert(ksize % 2 == 1);
+    Mat tmp;
+    int len = ksize / 2;
+    tmp.create(Size(src.cols + len, src.rows + len), src.type());//添加边框
+    dst.create(Size(src.cols, src.rows), src.type());
+    int channel = src.channels();
+    uchar *ps = src.data;
+    uchar *pt = tmp.data;
+    for (int row = 0; row < tmp.rows; row++)//添加边框的过程
+    {
+        for (int col = 0; col < tmp.cols; col++) {
+            for (int c = 0; c < channel; c++) {
+                if (row >= len && row < tmp.rows - len && col >= len && col < tmp.cols - len)
+                    pt[(tmp.cols * row + col) * channel + c] = ps[(src.cols * (row - len) + col - len) * channel + c];
+                else
+                    pt[(tmp.cols * row + col) * channel + c] = 0;
+            }
+        }
+    }
+    int Hist[(1 << 16)] = {0};
+    uchar *pd = dst.data;
+    ushort val = 0;
+    pt = tmp.data;
+    for (int c = 0; c < channel; c++)//每个通道单独计算
+    {
+        for (int row = len; row < tmp.rows - len; row++) {
+            for (int col = len; col < tmp.cols - len; col++) {
+
+                if (col == len) {
+                    memset(Hist, 0, sizeof(Hist));
+                    for (int x = -len; x <= len; x++) {
+                        for (int y = -len; y <= len; y++) {
+                            val = pt[((row + x) * tmp.cols + col + y) * channel + c];
+                            Hist[val]++;
+                        }
+                    }
+                } else {
+                    int L = col - len - 1;
+                    int R = col + len;
+                    for (int y = -len; y <= len; y++) {
+                        int leftInd = ((row + y) * tmp.cols + L) * channel + c;
+                        int rightInd = ((row + y) * tmp.cols + R) * channel + c;
+                        Hist[pt[leftInd]]--;
+                        Hist[pt[rightInd]]++;
+                    }
+                }
+                val = GetMediValue(Hist, ksize * ksize / 2 + 1);
+                pd[(dst.cols * (row - len) + col - len) * channel + c] = val;
+
+            }
+        }
+    }
+}
 
 // 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。
 // （注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
@@ -2149,21 +2224,17 @@ void MeanFilterTest() {
     noise = addGaussianNoise(image);
     imshow("添加高斯噪声", noise);
     waitKey(0);
-    // 算数均值滤波器1、2、效果一致
-    // 算数均值滤波器1
-    MeanFilter(noise, 5, 5, 0);
-    // 算数均值滤波器2
-    meanFilter(noise, 5);
+    // 算数均值滤波器
+    noise = MeanFilter(noise, 5, 5, 0);
     imshow("算术均值滤波器", noise);
     waitKey(0);
-
 
     // 2、胡椒噪声、几何均值
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
     noise = image.clone();
-    addPepper(noise, 1000);
+    addPepperNoise(noise, 1000);
     imshow("添加1000个胡椒噪声", noise);
     waitKey(0);
     res = noise.clone();
@@ -2176,24 +2247,21 @@ void MeanFilterTest() {
     imshow("原始图像", image);
     waitKey(0);
     noise = image.clone();
-    addSalt(noise, 1000);
+    addSaltNoise(noise, 1000);
     imshow("添加1000个盐噪声", noise);
     waitKey(0);
     res = HarmonicMeanFilter(noise);
     imshow("5*5谐波均值滤波器", res);
     waitKey(0);
 
-
     // 4、椒盐噪声、逆谐波均值滤波器
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
     noise = image.clone();
-    addSalt(noise, 1000);
-    addPepper(noise, 1000);
+    AddSultPapperNoise(image, noise, 2000, 2);
     imshow("添加1000个盐噪声+1000个胡椒噪声", noise);
     waitKey(0);
-    //第二个参数是Q，Q=0退化成算术均值
     res = InverseHarmonicMeanFilter(noise, 1);
     imshow("5*5逆谐波均值滤波器", res);
     waitKey(0);
@@ -2204,56 +2272,54 @@ void MeanFilterTest() {
 void MedianFilterTest() {
     Mat image, noise, res1, res2;
 
-    /*---------胡椒------------*/
+   // 1、胡椒噪声
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
 
     noise = image.clone();
-    addPepper(noise, 1000);
+    addPepperNoise(noise, 1000);
     imshow("添加1000个胡椒噪声", noise);
     waitKey(0);
 
     res1 = noise.clone();
-    medeanFilter(res1, 5);
+    MediFilter(noise, res1, 5);
     imshow("5*5中均值滤波器", res1);
     waitKey(0);
 
 
     res2 = noise.clone();
-    medeanFilter(res2, 9);
+    MediFilter(noise, res2, 9);
     imshow("9*9中均值滤波器", res2);
     waitKey(0);
 
-    /*-----------盐噪声---------------*/
+    // 2、盐噪声
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
 
     noise = image.clone();
-    addSalt(noise, 1000);
+    addSaltNoise(noise, 1000);
     imshow("添加1000个盐噪声", noise);
     waitKey(0);
 
     res1 = noise.clone();
-    medeanFilter(res1, 5);
+    MediFilter(noise, res1, 5);
     imshow("5*5中均值滤波器", res1);
     waitKey(0);
 
     res2 = noise.clone();
-    medeanFilter(res2, 9);
+    MediFilter(noise, res2, 9);
     imshow("9*9中均值滤波器", res2);
     waitKey(0);
 
-
-    /*-----------盐噪声+胡椒噪声---------------*/
+    // 3、椒盐噪声
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
 
     noise = image.clone();
-    addSalt(noise, 1000);
-    addPepper(noise, 1000);
+    AddSultPapperNoise(image, noise, 2000, 2);
     imshow("添加1000个盐噪声+1000个胡椒噪声", noise);
     waitKey(0);
 
@@ -2276,9 +2342,7 @@ void AdaptMeanFilterTest() {
     waitKey(0);
 
     noise = image.clone();
-    addPepper(noise, 1000);
-
-    addSalt(noise, 1000);
+    AddSultPapperNoise(image, noise, 2000, 2);
     imshow("添加1000个胡椒噪声+1000个盐噪声", noise);
     waitKey(0);
 
@@ -2299,9 +2363,7 @@ void AdaptMedianFilterTest() {
     waitKey(0);
 
     noise = image.clone();
-    addPepper(noise, 1000);
-
-    addSalt(noise, 1000);
+    AddSultPapperNoise(image, noise, 2000, 2);
     imshow("添加1000个胡椒噪声+1000个盐噪声", noise);
     waitKey(0);
 
@@ -2324,7 +2386,7 @@ void MeanFilterColorTest() {
     imshow("添加高斯噪声", noise);
     waitKey(0);
     res1 = noise.clone();
-    meanFilter(res1, 5);                    //算术均值滤波器
+    meanFilter(res1, 5);
     imshow("算术均值滤波器", res1);
     waitKey(0);
     res2 = GeometryMeanFilter(noise);
@@ -2337,7 +2399,7 @@ void MeanFilterColorTest() {
 /**
  * lab4
  * 实验 4：图像去噪
- * 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。（注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
+ * 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用均值滤波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。（注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
  * 2、中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用 5*5 和 9*9 尺寸的模板对图像进行中值滤波。（注：请分别为图像添加胡椒噪声、盐噪声和 椒盐噪声，并观察滤波效果）
  * 3、自适应均值滤波。 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应局部降 低噪声滤波器去噪算法。模板大小 7*7（对比该算法的效果和均值滤波器的效果）
  * 4、自适应中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应中值滤波算 法对椒盐图像进行去噪。模板大小 7*7（对比中值滤波器的效果）
@@ -2346,11 +2408,11 @@ void MeanFilterColorTest() {
 void lab4() {
 
     // 1、均值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用算术均值滤 波器、几何均值滤波器、谐波和逆谐波均值滤波器进行图像去噪。模板大小为 5*5。
-    // （注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察 滤波效果）
+    // （注：请分别为图像添加高斯噪声、胡椒噪声、盐噪声和椒盐噪声，并观察滤波效果）
     MeanFilterTest();
 
     // 2、中值滤波 具体内容：利用 OpenCV 对灰度图像像素进行操作，分别利用 5*5 和 9*9 尺寸的模板对图像进行中值滤波。
-    // （注：请分别为图像添加胡椒噪声、盐噪声和 椒盐噪声，并观察滤波效果）
+    // （注：请分别为图像添加胡椒噪声、盐噪声和椒盐噪声，并观察滤波效果）
     MedianFilterTest();
 
     // 3、自适应均值滤波。 具体内容：利用 OpenCV 对灰度图像像素进行操作，设计自适应局部降 低噪声滤波器去噪算法。模板大小 7*7
@@ -2363,5 +2425,4 @@ void lab4() {
 
     // 5、彩色图像均值滤波 具体内容：利用 OpenCV 对彩色图像 RGB 三个通道的像素进行操作，利用算术均值滤波器和几何均值滤波器进行彩色图像去噪。模板大小为 5*5。
     MeanFilterColorTest();
-
 }
