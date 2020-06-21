@@ -124,6 +124,16 @@ Mat EnhanceLaplaceFilter(string image_path, int m_width, int m_height, int flag)
  */
 void lab4();
 
+/**
+ * 1、 灰度图像的 DFT 和 IDFT。
+ *      具体内容：利用 OpenCV 提供的 cvDFT 函数对图像进行 DFT 和 IDFT 变换
+ * 2、利用理想高通和低通滤波器对灰度图像进行频域滤波
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上利用理想高通和低通滤波 器进行滤波，并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频 率可输入。
+ * 3、利用布特沃斯高通和低通滤波器对灰度图像进行频域滤波。
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上进行利用布特沃斯高通和 低通滤波器进行滤波，并把滤波过后的图像显示在屏幕上（观察振铃现象），要 求截止频率和 n 可输入。
+ */
+void lab5();
+
 
 int main() {
     // lab1();
@@ -143,8 +153,9 @@ int main() {
 
     // lab3();
 
-    lab4();
+    // lab4();
 
+    lab5();
     return 0;
 }
 
@@ -658,7 +669,7 @@ int Sobel() {
     imshow("【效果图】Y方向Sobel", abs_grad_y);
     waitKey(0);
 
-    //【5】合并梯度(近似)
+    // 5】合并梯度(近似)
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, res);
     imshow("【效果图】整体方向Sobel", res);
     waitKey(0);
@@ -687,7 +698,7 @@ int Sobel_Color() {
     imshow("【效果图】Y方向Sobel", abs_grad_y);
     waitKey(0);
 
-    //【5】合并梯度(近似)
+    // 5】合并梯度(近似)
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, res);
     imshow("【效果图】整体方向Sobel", res);
 
@@ -2272,7 +2283,7 @@ void MeanFilterTest() {
 void MedianFilterTest() {
     Mat image, noise, res1, res2;
 
-   // 1、胡椒噪声
+    // 1、胡椒噪声
     image = imread(image_path + "lena.png", 0);
     imshow("原始图像", image);
     waitKey(0);
@@ -2425,4 +2436,246 @@ void lab4() {
 
     // 5、彩色图像均值滤波 具体内容：利用 OpenCV 对彩色图像 RGB 三个通道的像素进行操作，利用算术均值滤波器和几何均值滤波器进行彩色图像去噪。模板大小为 5*5。
     MeanFilterColorTest();
+}
+
+
+// 频域滤波步骤：
+// 1、确定填充参数P和Q。选择P=2M和Q=2N
+// 2、用0填充图像 ,得到图像fp (x,y)
+// 3、利用(-1)x+y乘以f p (x,y)移动图像中心
+// 4、计算移动中心后的图像的DFT，得到F(u,v)
+// 5、生产一个实的，对称的滤波函数H(u,v),其大小为P*Q
+// 6、利用G(u,v)=H(u,v)F(u,v)
+// 7、对G(u,v)进行IDFT,取其实部，再乘以(-1)x+y变换中心
+// 8、去左上限的MN区域，得到滤波后的图像
+// 2、OpenCV 中的 DFT 变换
+// void cvDFT( const CvArr* src, CvArr* dst, int flags );
+// src 输入数组, 实数或者复数.
+// dst 输出数组，和输入数组有相同的类型和大小。
+// flags 变换标志, 下面的值的组合:
+// CV_DXT_FORWARD - 正向 1D 或者 2D 变换. 结果不被缩放.
+// CV_DXT_INVERSE - 逆向 1D 或者 2D 变换. 结果不被缩放.当然 CV_DXT_FORWARD
+// 和 CV_DXT_INVERSE 是互斥的.
+// 3、利用 cvDFT 对图像进行处理需要考虑虚部，对虚步进行填 0 操作
+// 4、图像在进行 DFT 前要进行归一化处理
+/**
+ * 1、 灰度图像的 DFT 和 IDFT。
+ *      具体内容：利用 OpenCV 提供的 cvDFT 函数对图像进行 DFT 和 IDFT 变换
+ */
+void DtfIdftTest() {
+    // 1、以灰度模式读取原始图像并显示
+    Mat srcImage = imread(image_path + "lena.png", 0);
+    imshow("原始图像", srcImage);
+    waitKey(0);
+
+    // 2、将输入图像延扩到最佳的尺寸，边界用0补充
+    int m = getOptimalDFTSize(srcImage.rows);
+    int n = getOptimalDFTSize(srcImage.cols);
+    // 将添加的像素初始化为0.
+    Mat padded;
+    copyMakeBorder(srcImage, padded, 0, m - srcImage.rows, 0, n - srcImage.cols, BORDER_CONSTANT, Scalar::all(0));
+
+    // 3、为傅立叶变换的结果(实部和虚部)分配存储空间。
+    // 将planes数组组合合并成一个多通道的数组complexI
+    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    Mat complexI;
+    merge(planes, 2, complexI);
+
+    // 4、进行就地离散傅里叶变换
+    dft(complexI, complexI);
+
+    // 5、将复数转换为幅值，即=> log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+    split(complexI, planes); // 将多通道数组complexI分离成几个单通道数组，planes[0] = Re(DFT(I), planes[1] = Im(DFT(I))
+    magnitude(planes[0], planes[1], planes[0]);// planes[0] = magnitude
+    Mat magnitudeImage = planes[0];
+
+    // 6、进行对数尺度(logarithmic scale)缩放
+    magnitudeImage += Scalar::all(1);
+    log(magnitudeImage, magnitudeImage);//求自然对数
+
+    // 7、剪切和重分布幅度图象限
+    // 若有奇数行或奇数列，进行频谱裁剪
+    magnitudeImage = magnitudeImage(Rect(0, 0, magnitudeImage.cols & -2, magnitudeImage.rows & -2));
+    // 重新排列傅立叶图像中的象限，使得原点位于图像中心
+    int cx = magnitudeImage.cols / 2;
+    int cy = magnitudeImage.rows / 2;
+    Mat q0(magnitudeImage, Rect(0, 0, cx, cy));   // ROI区域的左上
+    Mat q1(magnitudeImage, Rect(cx, 0, cx, cy));  // ROI区域的右上
+    Mat q2(magnitudeImage, Rect(0, cy, cx, cy));  // ROI区域的左下
+    Mat q3(magnitudeImage, Rect(cx, cy, cx, cy)); // ROI区域的右下
+    //交换象限（左上与右下进行交换）
+    Mat tmp;
+    q0.copyTo(tmp);
+    q3.copyTo(q0);
+    tmp.copyTo(q3);
+    //交换象限（右上与左下进行交换）
+    q1.copyTo(tmp);
+    q2.copyTo(q1);
+    tmp.copyTo(q2);
+
+    // 8、归一化，用0到1之间的浮点值将矩阵变换为可视的图像格式
+    // 此句代码的OpenCV2版为：
+    // normalize(magnitudeImage, magnitudeImage, 0, 1, CV_MINMAX);
+    // 此句代码的OpenCV3版为:
+    normalize(magnitudeImage, magnitudeImage, 0, 1, NORM_MINMAX);
+
+    // 9、显示效果图
+    imshow("频谱幅值", magnitudeImage);
+    waitKey(0);
+
+    // 10、idft逆变换
+    // 创建两个通道，类型为float，大小为填充后的尺寸
+    Mat iDft[] = {Mat::zeros(planes[0].size(), CV_32F),
+                  Mat::zeros(planes[0].size(), CV_32F)};
+    // 傅立叶逆变换
+    idft(complexI, complexI);
+    split(complexI, iDft);
+    // 分离通道，主要获取0通道
+    magnitude(iDft[0], iDft[1], iDft[0]);//分离通道，主要获取0通道
+    // 归一化处理，float类型的显示范围为0-1,大于1为白色，小于0为黑色
+    normalize(iDft[0], iDft[0], 1, 0, CV_MINMAX);
+    imshow("idft", iDft[0]);
+    waitKey(0);
+}
+
+/**
+ * 2、利用理想高通和低通滤波器对灰度图像进行频域滤波
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上利用理想高通和低通滤波 器进行滤波，
+ *      并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率可输入。
+ *
+ * 3、利用布特沃斯高通和低通滤波器对灰度图像进行频域滤波。
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上进行利用布特沃斯高通和 低通滤波器进行滤波，
+ *      并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率和 n 可输入。
+ * @param D0
+ * @param flag 0-理想低通，1-理想高通，2-布特沃斯低通，3-布特沃斯高通
+ */
+void FilterTest(double D0 = 60, int flag = 0, int n = 0) {
+    // 1、以灰度模式读取原始图像并显示
+    Mat src, fourier, res;
+    src = imread(image_path + "lena.png", 0);
+    imshow("原始图像", src);
+    waitKey(0);
+    Mat img = src.clone();
+    // cvtColor(src, img, CV_BGR2GRAY);
+
+    // 2、将输入图像延扩到最佳的尺寸，边界用0补充
+    // 调整图像加速傅里叶变换
+    int M = getOptimalDFTSize(img.rows);
+    int N = getOptimalDFTSize(img.cols);
+    //将添加的像素初始化为0.
+    Mat padded;
+    copyMakeBorder(img, padded, 0, M - img.rows, 0, N - img.cols, BORDER_CONSTANT, Scalar::all(0));
+
+    // 3、为傅立叶变换的结果(实部和虚部)分配存储空间。
+    //将planes数组组合合并成一个多通道的数组complexI
+    // 记录傅里叶变换的实部和虚部
+    Mat planes[] = {Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F)};
+    Mat complexImg;
+    merge(planes, 2, complexImg);
+
+    // 4、进行就地离散傅里叶变换
+    dft(complexImg, complexImg);
+
+    // 7、剪切和重分布幅度图象限
+    // 若有奇数行或奇数列，进行频谱裁剪
+    Mat magnitudeImage = complexImg;
+    magnitudeImage = magnitudeImage(
+            Rect(0, 0, magnitudeImage.cols & -2, magnitudeImage.rows & -2));//这里为什么&上-2具体查看opencv文档
+    // 其实是为了把行和列变成偶数 -2的二进制是11111111.......10 最后一位是0
+    // 获取中心点坐标
+    // 重新排列傅立叶图像中的象限，使得原点位于图像中心
+    int cx = magnitudeImage.cols / 2;
+    int cy = magnitudeImage.rows / 2;
+    // 调整频域
+    Mat tmp;
+    Mat q0(magnitudeImage, Rect(0, 0, cx, cy));   // ROI区域的左上
+    Mat q1(magnitudeImage, Rect(cx, 0, cx, cy));  // ROI区域的右上
+    Mat q2(magnitudeImage, Rect(0, cy, cx, cy));  // ROI区域的左下
+    Mat q3(magnitudeImage, Rect(cx, cy, cx, cy)); // ROI区域的右下
+    // 交换象限（左上与右下进行交换）
+    q0.copyTo(tmp);
+    q3.copyTo(q0);
+    tmp.copyTo(q3);
+    // 交换象限（右上与左下进行交换）
+    q1.copyTo(tmp);
+    q2.copyTo(q1);
+    tmp.copyTo(q2);
+    // Duv = ((u-P/2)^2 + (v-Q/2)^2)^ (1/2)
+    // D0为自己设定的阀值
+    for (int y = 0; y < magnitudeImage.rows; y++) {
+        double *data = magnitudeImage.ptr<double>(y);
+        for (int x = 0; x < magnitudeImage.cols; x++) {
+            double d = sqrt(pow((y - cy), 2) + pow((x - cx), 2));
+            // 1、理想低通滤波器
+            if (flag == 0 && d > D0) {
+                data[x] = 0;
+            }
+            // 2、理想高通滤波器
+            if (flag == 1 && d <= D0) {
+                data[x] = 0;
+            }
+            // 3、 4、不特沃斯高、低通滤波器
+            if (flag == 2 || flag == 3) {
+                double h = 0.0;
+                if (flag == 2) {
+                    h = 1.0 / (1 + pow(d / D0, 2 * n));
+                }
+                if (flag == 3) {
+                    h = 1.0 / (1 + pow(D0 / d, 2 * n));
+                }
+                if (h <= 0.5) {
+                    data[x] = 0;
+                }
+            }
+        }
+    }
+    // 再调整频域
+    q0.copyTo(tmp);
+    q3.copyTo(q0);
+    tmp.copyTo(q3);
+    q1.copyTo(tmp);
+    q2.copyTo(q1);
+    tmp.copyTo(q2);
+    // 逆变换
+    Mat invDFT, invDFTcvt;
+    idft(magnitudeImage, invDFT, DFT_SCALE | DFT_REAL_OUTPUT); // Applying IDFT
+    invDFT.convertTo(invDFTcvt, CV_8U);
+    imshow("滤波后图像", invDFTcvt);
+    waitKey(0);
+}
+
+/**
+ * 1、 灰度图像的 DFT 和 IDFT。
+ *      具体内容：利用 OpenCV 提供的 cvDFT 函数对图像进行 DFT 和 IDFT 变换
+ * 2、利用理想高通和低通滤波器对灰度图像进行频域滤波
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上利用理想高通和低通滤波 器进行滤波，
+ *      并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率可输入。
+ * 3、利用布特沃斯高通和低通滤波器对灰度图像进行频域滤波。
+ *      具体内容：利用 cvDFT 函数实现 DFT，在频域上进行利用布特沃斯高通和 低通滤波器进行滤波，
+ *      并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率和 n 可输入。
+ */
+void lab5() {
+    // 1、 灰度图像的 DFT 和 IDFT。
+    //      具体内容：利用 OpenCV 提供的 cvDFT 函数对图像进行 DFT 和 IDFT 变换
+    DtfIdftTest();
+
+    // 2、利用理想高通和低通滤波器对灰度图像进行频域滤波
+    //         具体内容：利用 cvDFT 函数实现 DFT，在频域上利用理想高通和低通滤波 器进行滤波，
+    //         并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率可输入。
+    int i2 = 8;
+    for (int j = 1; j <= i2; ++j) {
+        FilterTest(j * 10.0, 0);
+        FilterTest(j * 10.0, 1);
+    }
+
+    // 3、利用布特沃斯高通和低通滤波器对灰度图像进行频域滤波。
+    //         具体内容：利用 cvDFT 函数实现 DFT，在频域上进行利用布特沃斯高通和 低通滤波器进行滤波，
+    //         并把滤波过后的图像显示在屏幕上（观察振铃现象），要求截止频率和 n 可输入。
+    int i3 = 8;
+    for (int j = 1; j <= i3; ++j) {
+        FilterTest(j * 10.0, 2, j);
+        FilterTest(j * 10.0, 2, i3 - j + 1);
+        FilterTest(j * 10.0, 3, j);
+        FilterTest(j * 10.0, 3, i3 - j + 1);
+    }
 }
